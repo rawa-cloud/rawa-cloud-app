@@ -1,0 +1,31 @@
+windows系统：
+        windows 系统需自行安装docker容器， win10专业版与其他版本安装方式有所不同；
+        由于数据是挂在安装目录上，安装前请在docker设置中设置安装包所在盘符为共享磁盘;
+        docker启动后， 进入bin目录， 双击 install.bat进行安装;
+        安装完成后，开chrome浏览器，输入http://localhost:8000即可访问；
+
+      重启：当主机关机重启后，需要运行 bin 目录下的restart.bat 重新启动应用；
+
+      重新安装： 如需重新安装， 请先运行 bin 目录下的uninstall.bat卸载应用， 然后再点击 install.bat 进行安装；
+
+Linux系统：
+    Linux系统可自动安装docker， 无需提前安装docker， 如果已经安装好docker， 将不会自动安装；
+    进入bin目录， 执行install.sh进行安装， 需手动输入正确的ip与mac地址；
+    安装完成后，开chrome浏览器，输入http://ip:8000即可访问；
+
+    重启：当主机关机重启后，需要运行 bin 目录下的restart.sh 重新启动应用；
+
+    重新安装： 如需重新安装， 请先运行 bin 目录下的uninstall.sh卸载应用， 然后再点击 install.sh 进行安装；
+
+
+数据说明：
+    应用数据都存在安装包的rawa-data下：
+        nas: 文件储存目录
+        logs：应用日志目录
+        temp：应用产生的临时文件，每24小时会进行一次清理
+        exports: 导出计划，原文件导出目录
+        imports：导入计划，导入文件目录
+        mysql：mysql数据相关
+
+
+

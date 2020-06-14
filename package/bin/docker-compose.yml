@@ -1,0 +1,38 @@
+version: '2'
+services:
+  rawa-app:  # 指定服务名称
+    image: rawa/app
+    ports:    # 指定端口映射
+      - "8080:8080"
+    depends_on:
+      - rawa-db
+    restart: always
+    volumes:
+    - ../rawa-data/nas:/nas
+    - ../rawa-data/temp:/temp
+    - ../rawa-data/logs:/logs
+    - ../rawa-data/exports:/exports
+    - ../rawa-data/imports:/imports
+  rawa-db:
+    image: rawa/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+    - ../rawa-data/mysql/conf:/etc/mysql
+    - ../rawa-data/mysql/data:/var/lib/mysql
+  rawa-web:
+    image: rawa/web
+    ports:
+      - "8000:8000"
+    restart: always
+  rawa-mweb:
+    image: rawa/mweb
+    ports:
+      - "8004:8000"
+    restart: always
+  rawa-office:
+    image: rawa/office
+    ports:
+      - "3000:80"
+    restart: always

@@ -1,0 +1,23 @@
+echo load rawa-mysql ...
+docker load -i ../images/rawa-mysql.tar
+
+echo load rawa-app ...
+docker load -i ../images/rawa-app.tar
+
+echo load rawa-web ...
+docker load -i ../images/rawa-web.tar
+
+echo load rawa-mweb ...
+docker load -i ../images/rawa-mweb.tar
+
+
+echo load rawa-office ...
+docker load -i ../images/rawa-office.tar
+
+echo start...
+docker-compose up -d
+
+echo init data...
+echo install success !!!
+
+pause
