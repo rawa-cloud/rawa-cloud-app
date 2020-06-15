@@ -26,6 +26,6 @@ public abstract class PageModel<E> extends BaseModel<E> {
     }
 
     public Pageable toPage (boolean asc, String property) {
-        return new PageRequest(page, size, Sort.by(asc ? Sort.Direction.DESC : Sort.Direction.DESC, property));
+        return new PageRequest(page, size, Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, property));
     }
 }

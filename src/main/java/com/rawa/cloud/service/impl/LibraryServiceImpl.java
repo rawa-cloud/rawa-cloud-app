@@ -1,14 +1,18 @@
 package com.rawa.cloud.service.impl;
 
 import com.rawa.cloud.constant.*;
+import com.rawa.cloud.core.excel.ExcelData;
 import com.rawa.cloud.domain.*;
 import com.rawa.cloud.exception.AppException;
 import com.rawa.cloud.helper.ContextHelper;
+import com.rawa.cloud.helper.ExcelHelper;
 import com.rawa.cloud.model.library.*;
+import com.rawa.cloud.properties.AppProperties;
 import com.rawa.cloud.repository.*;
 import com.rawa.cloud.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -50,6 +54,9 @@ public class LibraryServiceImpl implements LibraryService {
 
     @Autowired
     FileRepository fileRepository;
+
+    @Autowired
+    AppProperties appProperties;
 
     @Override
     public List<LibraryCatalog> getLibCatalogs() {
@@ -247,6 +254,40 @@ public class LibraryServiceImpl implements LibraryService {
     @Override
     public Page<Library> getLibraries(LibraryQueryModel model) {
         return libraryRepository.findAll(getLibrarySpec(model), model.toPage(false, "updatedDate"));
+    }
+
+    @Override
+    public java.io.File exportLibraries(LibraryExportModel model) {
+        Long catalogId = model.getCatalogId();
+        LibraryCatalog catalog = libraryCatalogRepository.findById(catalogId)
+                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_CATALOG_NOT_FOUND, catalogId));
+        List<String> titles = catalog.getFieldDefs().stream()
+                .filter(s -> Boolean.TRUE.equals(s.getVisible()))
+                .map(s -> s.getName())
+                .collect(Collectors.toList());
+        List<Library> data = libraryRepository.findAll(getLibrarySpec(model.toQueryModel()), Sort.by(Sort.Direction.DESC, "updatedDate"));
+        List<List<Object>> rows = data.stream()
+                .map(s -> {
+                    return titles.stream()
+                            .map(p -> {
+                                String value = "";
+                                for (LibraryField f: s.getFields()) {
+                                    if (p.equals(f.getName())) {
+                                        if (!StringUtils.isEmpty(f.getValue())) {
+                                            value = f.getValue().replaceAll("\"", "");
+                                        }
+                                        break;
+                                    }
+                                }
+                                return (Object) value;
+                            }).collect(Collectors.toList());
+                }).collect(Collectors.toList());
+        ExcelData excelData = new ExcelData();
+        excelData.setTitles(titles);
+        excelData.setRows(rows);
+        java.io.File file = new java.io.File(appProperties.getTemp(), UUID.randomUUID().toString() + ".xlsx");
+        ExcelHelper.generateExcel(excelData, file);
+        return file;
     }
 
     @Override

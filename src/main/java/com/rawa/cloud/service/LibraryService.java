@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.util.List;
 
 public interface LibraryService {
@@ -43,6 +44,8 @@ public interface LibraryService {
     // Library
 
     Page<Library> getLibraries(LibraryQueryModel model);
+
+    File exportLibraries(LibraryExportModel model);
 
     Long addLibrary(LibraryAddModel model);
 

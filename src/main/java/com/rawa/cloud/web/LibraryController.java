@@ -132,6 +132,13 @@ public class LibraryController {
         return JsonResult.success(libraryService.getLibraries(model));
     }
 
+    @ApiOperation("导出库列表")
+    @PostMapping("/export")
+    public ResponseEntity<FileSystemResource> exportLibraries (@Valid @RequestBody LibraryExportModel model, BindingResult result, HttpServletResponse response) {
+        ValidationHelper.validate(result);
+        return FileHelper.download(libraryService.exportLibraries(model), response);
+    }
+
     @ApiOperation("新增库")
     @PostMapping("")
     public JsonResult<Long> addLibrary (@Valid @RequestBody LibraryAddModel model, BindingResult result) {
