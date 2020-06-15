@@ -9,6 +9,7 @@ import com.rawa.cloud.repository.*;
 import com.rawa.cloud.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -245,75 +246,7 @@ public class LibraryServiceImpl implements LibraryService {
 
     @Override
     public Page<Library> getLibraries(LibraryQueryModel model) {
-        Long catalogId = model.getCatalogId();
-        String name = model.getName();
-        LibraryCatalog catalog = libraryCatalogRepository.findById(catalogId)
-                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_CATALOG_NOT_FOUND, catalogId));
-        return libraryRepository.findAll((root, criteriaQuery, criteriaBuilder) -> {
-                Predicate predicate = criteriaBuilder.conjunction();
-                predicate.getExpressions().add(criteriaBuilder.equal(root.get("catalog"), catalog));
-                if (!ContextHelper.getCurrentUser().hasSuperRole()) {
-                    Predicate p1 = criteriaBuilder.equal(root.get("visibility"), LibraryVisibility.all);
-
-                    Predicate p2_1 = criteriaBuilder.equal(root.get("visibility"), LibraryVisibility.assign);
-                    Predicate p2_2 = criteriaBuilder.equal(root.join("authorityList", JoinType.LEFT).get("username"), ContextHelper.getCurrentUsername());
-                    Predicate p2 = criteriaBuilder.and(p2_1, p2_2);
-
-                    predicate.getExpressions().add(criteriaBuilder.or(p1, p2));
-                }
-
-                if (!StringUtils.isEmpty(name)) {
-                    predicate.getExpressions().add(criteriaBuilder.equal(root.get("name"), name));
-                }
-
-                if (model.getParams() != null && model.getParams().size() > 0) {
-                    Map<String, Object> params = model.getParams();
-                    for (Map.Entry<String, Object> entry : params.entrySet()) {
-                        Object value = entry.getValue();
-                        Long key = Long.valueOf(entry.getKey());
-                        boolean isEmpty = false;
-                        if (value == null) isEmpty = true;
-                        if (value instanceof String && StringUtils.isEmpty(value)) isEmpty = true;
-                        if (value instanceof List && CollectionUtils.isEmpty((List)value)) isEmpty = true;
-                        if (!isEmpty) {
-                            LibraryFieldDef def = libraryFieldDefRepository.findById(key)
-                                    .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_CATALOG_FIELD_NOT_FOUND, key));
-                            boolean isText = LibraryFieldType.text.equals(def.getType())
-                                    || LibraryFieldType.multi_text.equals(def.getType())
-                                    || LibraryFieldType.radio.equals(def.getType());
-
-                            boolean isBool = LibraryFieldType.bool.equals(def.getType());
-
-                            boolean isMultiple = LibraryFieldType.checkbox.equals(def.getType());
-
-                            boolean isRange = LibraryFieldType.date.equals(def.getType())
-                                    || LibraryFieldType.datetime.equals(def.getType());
-
-                            Predicate p = criteriaBuilder.equal(root.join("fieldList").join("fieldDef").get("id"),key);
-
-                            if (isText) {
-                                Predicate p1 = criteriaBuilder.equal(root.join("fieldList").get("value"), "\"" + value + "\"");
-                                predicate.getExpressions().add(criteriaBuilder.and(p, p1));
-                            } else if (isMultiple) {
-                                Predicate p1 = criteriaBuilder.like(root.join("fieldList").get("value"), "%" + value + "%");
-                                predicate.getExpressions().add(criteriaBuilder.and(p, p1));
-                            } else if (isRange) {
-                                String v1 = String.valueOf(((List)value).get(0));
-                                String v2 = String.valueOf(((List)value).get(1));
-                                if (!StringUtils.isEmpty(v1) && !StringUtils.isEmpty(v2)) {
-                                    Predicate p1 = criteriaBuilder.between(root.join("fieldList").get("value"),
-                                            "\"" + ((List)value).get(0) + "\"", "\"" + ((List)value).get(1) + "\"");
-                                    predicate.getExpressions().add(criteriaBuilder.and(p, p1));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                criteriaQuery.groupBy(root.get("id"));
-                return predicate;
-            }, model.toPage(false, "updatedDate")
-        );
+        return libraryRepository.findAll(getLibrarySpec(model), model.toPage(false, "updatedDate"));
     }
 
     @Override
@@ -530,5 +463,76 @@ public class LibraryServiceImpl implements LibraryService {
 
     private boolean isEnumType (LibraryFieldDef fieldDef) {
         return LibraryFieldType.radio.equals(fieldDef.getType()) || LibraryFieldType.checkbox.equals(fieldDef.getType());
+    }
+
+    private Specification<Library> getLibrarySpec (LibraryQueryModel model) {
+        Long catalogId = model.getCatalogId();
+        String name = model.getName();
+        LibraryCatalog catalog = libraryCatalogRepository.findById(catalogId)
+                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_CATALOG_NOT_FOUND, catalogId));
+        return (root, criteriaQuery, criteriaBuilder) -> {
+            Predicate predicate = criteriaBuilder.conjunction();
+            predicate.getExpressions().add(criteriaBuilder.equal(root.get("catalog"), catalog));
+            if (!ContextHelper.getCurrentUser().hasSuperRole()) {
+                Predicate p1 = criteriaBuilder.equal(root.get("visibility"), LibraryVisibility.all);
+
+                Predicate p2_1 = criteriaBuilder.equal(root.get("visibility"), LibraryVisibility.assign);
+                Predicate p2_2 = criteriaBuilder.equal(root.join("authorityList", JoinType.LEFT).get("username"), ContextHelper.getCurrentUsername());
+                Predicate p2 = criteriaBuilder.and(p2_1, p2_2);
+
+                predicate.getExpressions().add(criteriaBuilder.or(p1, p2));
+            }
+
+            if (!StringUtils.isEmpty(name)) {
+                predicate.getExpressions().add(criteriaBuilder.equal(root.get("name"), name));
+            }
+
+            if (model.getParams() != null && model.getParams().size() > 0) {
+                Map<String, Object> params = model.getParams();
+                for (Map.Entry<String, Object> entry : params.entrySet()) {
+                    Object value = entry.getValue();
+                    Long key = Long.valueOf(entry.getKey());
+                    boolean isEmpty = false;
+                    if (value == null) isEmpty = true;
+                    if (value instanceof String && StringUtils.isEmpty(value)) isEmpty = true;
+                    if (value instanceof List && CollectionUtils.isEmpty((List)value)) isEmpty = true;
+                    if (!isEmpty) {
+                        LibraryFieldDef def = libraryFieldDefRepository.findById(key)
+                                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_CATALOG_FIELD_NOT_FOUND, key));
+                        boolean isText = LibraryFieldType.text.equals(def.getType())
+                                || LibraryFieldType.multi_text.equals(def.getType())
+                                || LibraryFieldType.radio.equals(def.getType());
+
+                        boolean isBool = LibraryFieldType.bool.equals(def.getType());
+
+                        boolean isMultiple = LibraryFieldType.checkbox.equals(def.getType());
+
+                        boolean isRange = LibraryFieldType.date.equals(def.getType())
+                                || LibraryFieldType.datetime.equals(def.getType());
+
+                        Predicate p = criteriaBuilder.equal(root.join("fieldList").join("fieldDef").get("id"),key);
+
+                        if (isText) {
+                            Predicate p1 = criteriaBuilder.equal(root.join("fieldList").get("value"), "\"" + value + "\"");
+                            predicate.getExpressions().add(criteriaBuilder.and(p, p1));
+                        } else if (isMultiple) {
+                            Predicate p1 = criteriaBuilder.like(root.join("fieldList").get("value"), "%" + value + "%");
+                            predicate.getExpressions().add(criteriaBuilder.and(p, p1));
+                        } else if (isRange) {
+                            String v1 = String.valueOf(((List)value).get(0));
+                            String v2 = String.valueOf(((List)value).get(1));
+                            if (!StringUtils.isEmpty(v1) && !StringUtils.isEmpty(v2)) {
+                                Predicate p1 = criteriaBuilder.between(root.join("fieldList").get("value"),
+                                        "\"" + ((List)value).get(0) + "\"", "\"" + ((List)value).get(1) + "\"");
+                                predicate.getExpressions().add(criteriaBuilder.and(p, p1));
+                            }
+                        }
+                    }
+                }
+            }
+
+            criteriaQuery.groupBy(root.get("id"));
+            return predicate;
+        };
     }
 }
