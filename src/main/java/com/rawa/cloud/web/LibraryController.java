@@ -146,6 +146,12 @@ public class LibraryController {
         return JsonResult.success(libraryService.addLibrary(model));
     }
 
+    @ApiOperation("复制库")
+    @PostMapping("/copy/{id}")
+    public JsonResult<Long> copyLibrary (@PathVariable Long id) {
+        return JsonResult.success(libraryService.copyLibrary(id));
+    }
+
     @ApiOperation("编辑库")
     @PutMapping("/{id}")
     public JsonResult updateLibrary (@PathVariable Long id, @Valid @RequestBody LibraryUpdateModel model, BindingResult result) {

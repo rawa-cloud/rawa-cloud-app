@@ -321,6 +321,45 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
+    @Transactional
+    public Long copyLibrary(Long id) {
+        Library library = libraryRepository.findById(id)
+                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_NOT_FOUND, id));
+        Library entity = new Library();
+        entity.setName(library.getName());
+        entity.setCatalog(library.getCatalog());
+
+        entity = libraryRepository.save(entity);
+
+        List<LibraryField> fields = new LinkedList<>();
+        if (!CollectionUtils.isEmpty(library.getFieldList())) {
+            for (LibraryField f: library.getFieldList()) {
+                LibraryField item = new LibraryField();
+                item.setFieldDef(f.getFieldDef());
+                item.setLibrary(entity);
+                item.setValue(f.getValue());
+                fields.add(item);
+            }
+        }
+        entity.setFieldList(fields);
+        entity.setVisibility(library.getVisibility());
+        if(LibraryVisibility.assign.equals(entity.getVisibility())) {
+            List<LibraryAuthority> authorities = new LinkedList<>();
+            if (!CollectionUtils.isEmpty(library.getAuthorityList())) {
+                for (LibraryAuthority a: library.getAuthorityList()) {
+                    LibraryAuthority item = new LibraryAuthority();
+                    item.setLibrary(entity);
+                    item.setOpt(a.getOpt());
+                    item.setUsername(a.getUsername());
+                    authorities.add(item);
+                }
+            }
+            entity.setAuthorityList(authorities);
+        }
+        return entity.getId();
+    }
+
+    @Override
     public void updateLibrary(Long id, LibraryUpdateModel model) {
         Library library = libraryRepository.findById(id)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_NOT_FOUND, id));

@@ -49,6 +49,8 @@ public interface LibraryService {
 
     Long addLibrary(LibraryAddModel model);
 
+    Long copyLibrary(Long id);
+
     void updateLibrary(Long id, LibraryUpdateModel model);
 
     void deleteLibrary(Long id);
