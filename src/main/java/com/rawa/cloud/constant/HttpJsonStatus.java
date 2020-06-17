@@ -49,6 +49,10 @@ public enum HttpJsonStatus {
     IMPORT_PLAN_NOT_EXIST_DIR("605002", "导入文件夹不存在"),
     IMPORT_PLAN_NOT_FOUND("605004", "导入计划不存在"),
     IMPORT_PLAN_ONGOING("605005", "导入计划正在执行，请等待执行完毕"),
+    WATERMARK_EXISTS("606000", "水印名称已存在"),
+    WATERMARK_NOT_FOUND("606001", "水印不存在"),
+    USER_WATERMARK_NOT_FOUND("607001", "水印用户关联关系不存在"),
+    USER_WATERMARK_EXISTS("607002", "水印用户关联关系已存在"),
     // TODO ...
     ERROR("200000", "服务器异常"),
     RECORD_NOT_FOUND("200001", "未找到记录"),
