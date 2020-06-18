@@ -37,7 +37,7 @@ public class WatermarkServiceImpl implements WatermarkService {
         watermark.setName(name);
         watermark.setContent(model.getContent());
         watermark.setUuid(model.getUuid());
-        watermark.setStatus(true);
+        watermark.setStatus(model.getStatus());
         return watermarkRepository.save(watermark).getId();
     }
 

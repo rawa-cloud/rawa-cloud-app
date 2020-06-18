@@ -52,7 +52,7 @@ public class WatermarkController {
     }
 
     @ApiOperation("删除")
-    @DeleteMapping("")
+    @DeleteMapping("/{id}")
     public JsonResult delete(@PathVariable Long id) {
         watermarkService.delete(id);
         return JsonResult.success(null);

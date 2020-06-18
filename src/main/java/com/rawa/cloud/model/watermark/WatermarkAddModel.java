@@ -26,4 +26,7 @@ public class WatermarkAddModel extends BaseModel<Watermark> {
     @ApiModelProperty(value = "水印内容")
     private String content;
 
+    @ApiModelProperty(value = "状态：开启/关闭")
+    @NotNull
+    private Boolean status;
 }
