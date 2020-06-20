@@ -1,4 +1,5 @@
 FROM java:8
+COPY msyh.ttf /usr/share/fonts/msyh.ttf
 VOLUME /tmp
 VOLUME /nas
 VOLUME /temp

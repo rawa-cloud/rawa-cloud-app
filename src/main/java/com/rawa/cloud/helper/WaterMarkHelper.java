@@ -56,7 +56,7 @@ public class WaterMarkHelper {
                 int x = logoWidth + (int)(srcImgwidth * spaceRatio) + 64;
                 int textWidth = srcImgwidth - x - (int)(srcImgwidth * spaceRatio);
                 int fontSize = getFontSize(textWidth, text);
-                Font font = new Font("Serif",Font.PLAIN, fontSize);
+                Font font = new Font("微软雅黑",Font.PLAIN, fontSize);
                 g.setFont(font);
                 int lineHeight = (int)(fontSize * 1.5);
                 int h = lineHeight * text.length;

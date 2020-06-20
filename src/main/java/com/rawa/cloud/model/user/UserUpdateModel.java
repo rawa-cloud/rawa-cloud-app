@@ -15,6 +15,9 @@ public class UserUpdateModel extends BaseModel<User> {
     @ApiModelProperty(value = "中文名称")
     private String cname;
 
+    @ApiModelProperty(value = "密码")
+    private String password;
+
     @ApiModelProperty(value = "ip段", example = "10.192.168.1-10")
     private String ip;
 

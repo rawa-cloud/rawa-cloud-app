@@ -114,6 +114,11 @@ public class UserServiceImpl implements UserService {
 
         Log log = Log.build(LogModule.USER, LogType.UPDATE).lc(user.getUsername());
 
+        if (!StringUtils.isEmpty(model.getPassword())) {
+            String encodePassword = EncryptHelper.encrypt(model.getPassword());
+            user.setPassword(encodePassword);
+        }
+
         if(!StringUtils.equals(cname, user.getCname())) {
             log.add("中文名", cname, user.getCname());
             user.setCname(cname);
