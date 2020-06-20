@@ -6,6 +6,8 @@ import com.rawa.cloud.model.userwatermark.UserWatermarkQueryModel;
 import com.rawa.cloud.model.userwatermark.UserWatermarkUpdateModel;
 import org.springframework.data.domain.Page;
 
+import java.io.File;
+
 public interface UserWatermarkService {
 
     Long add(UserWatermarkAddModel model);
@@ -17,4 +19,6 @@ public interface UserWatermarkService {
     UserWatermark get(Long id);
 
     void delete(Long id);
+
+    File generateWatermark (File source, String username);
 }

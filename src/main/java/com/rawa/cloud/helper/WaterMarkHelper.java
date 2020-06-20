@@ -1,5 +1,7 @@
 package com.rawa.cloud.helper;
 
+import org.springframework.util.StringUtils;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -8,7 +10,10 @@ import java.io.FileOutputStream;
 import java.util.UUID;
 
 public class WaterMarkHelper {
-    public static File addWatermark(File source, File target, String watermarkContent) {
+    private static float spaceRatio = 0.1f;
+    private static float logoRadio = 0.3f;
+
+    public static File addWatermark(File source, File target, File logo, String watermarkContent) {
         try {
             Image srcImg = ImageIO.read(source);
             //获取图片的宽和高
@@ -22,25 +27,44 @@ public class WaterMarkHelper {
             //画出来
             g.drawImage(srcImg, 0, 0, srcImgwidth, srcImgheight, null);
 
-            g.rotate(Math.toRadians(-45),
-                    (double) buffImg.getWidth() / 2, (double) buffImg
-                            .getHeight() / 2);
-
             //设置水印的颜色
-            Color color = new Color(160, 160, 160, 140);
+            Color color = new Color(0, 0, 0, 255);
             g.setColor(color);
 
+//            g.rotate(Math.toRadians(-45),
+//                    (double) buffImg.getWidth() / 2, (double) buffImg
+//                            .getHeight() / 2);
+            int logoWidth = 0;
+            if (logo != null) {
+                int maxWidth = (int)(srcImgwidth * logoRadio);
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP,0.7f));
+                Image logoImage = ImageIO.read(logo);
+                int w = logoImage.getWidth(null);
+                int h = logoImage.getHeight(null);
+                logoWidth = Math.min(maxWidth, w);
+                int logoHeight = h * logoWidth / w;
+                int x = (int)(srcImgwidth * spaceRatio);
+                int y = (srcImgheight - logoHeight) / 2;
+                g.drawImage(logoImage, x, y, logoWidth, logoHeight, null);
+            }
+
             //设置水印的字体
-            Font font = new Font("微软雅黑",Font.PLAIN,24);
-            g.setFont(font);
 
             //设置水印坐标
-            int maxY = Math.max(srcImgheight, srcImgwidth) * 3;
-            int lineHeight = 128;
-            int y = - maxY;
-            while ( y < maxY) {
-                y += lineHeight;
-                g.drawString(getRepeatContent(watermarkContent, g, maxY), -maxY, y);
+            if (!StringUtils.isEmpty(watermarkContent)) {
+                String[] text = watermarkContent.split("\n");
+                int x = logoWidth + (int)(srcImgwidth * spaceRatio) + 64;
+                int textWidth = srcImgwidth - x - (int)(srcImgwidth * spaceRatio);
+                int fontSize = getFontSize(textWidth, text);
+                Font font = new Font("微软雅黑",Font.PLAIN, fontSize);
+                g.setFont(font);
+                int lineHeight = (int)(fontSize * 1.5);
+                int h = lineHeight * text.length;
+                int y = (srcImgheight - h) / 2;
+                for (String t: text) {
+                    g.drawString(t, x, y);
+                    y += lineHeight;
+                }
             }
 
             //根据获取的坐标 在相应的位置画出水印
@@ -65,16 +89,21 @@ public class WaterMarkHelper {
         }
     }
 
-    private static int getWaterMarkLength(String watermarkContent,Graphics2D g) {
-        return g.getFontMetrics(g.getFont()).charsWidth(watermarkContent.toCharArray(), 0, watermarkContent.length());
-    }
-
-    private static String getRepeatContent (String watermarkContent, Graphics2D g, int maxLen) {
-        int n = maxLen * 3 / getWaterMarkLength(watermarkContent, g) + 1;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            sb.append(watermarkContent).append("  ");
+    private static int getFontSize (int total, String[] text) {
+        int len = 0;
+        int min = 16;
+        int max = 64;
+        for (String t: text) {
+            if (len <= 0) {
+                len = t.length();
+            } else if (t.length() < len) {
+                len = t.length();
+            }
         }
-        return sb.toString();
+
+        int s = (int)(total / len / 1.25);
+        s = Math.max(min, s);
+        s = Math.min(s, max);
+        return s;
     }
 }

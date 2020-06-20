@@ -15,18 +15,14 @@ import javax.validation.constraints.NotNull;
 public class UserWatermarkQueryModel extends PageModel<UserWatermark> {
 
     @ApiModelProperty(value = "用户名")
-    @NotEmpty
     private String username;
 
     @ApiModelProperty(value = "水印ID")
-    @NotNull
     private Long watermarkId;
 
     @ApiModelProperty(value = "下载时使用")
-    @NotNull
     private Boolean download;
 
-    @NotNull
     @ApiModelProperty(value = "预览时使用")
     private Boolean preview;
 

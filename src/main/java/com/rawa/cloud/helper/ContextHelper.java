@@ -1,6 +1,7 @@
 package com.rawa.cloud.helper;
 
 import com.rawa.cloud.domain.User;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.FileCopyUtils;
@@ -19,7 +20,9 @@ import java.util.List;
 
 public class ContextHelper {
     public static User getCurrentUser() {
-        Object p = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication a = SecurityContextHolder.getContext().getAuthentication();
+        if (a == null || a.getPrincipal() == null) return null;
+        Object p = a.getPrincipal();
         if(p instanceof User) return (User) p;
         return null;
     }

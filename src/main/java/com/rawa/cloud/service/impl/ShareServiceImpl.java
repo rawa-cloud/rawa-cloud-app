@@ -7,6 +7,7 @@ import com.rawa.cloud.domain.File;
 import com.rawa.cloud.domain.Link;
 import com.rawa.cloud.domain.User;
 import com.rawa.cloud.exception.AppException;
+import com.rawa.cloud.helper.ContextHelper;
 import com.rawa.cloud.repository.FileRepository;
 import com.rawa.cloud.repository.LinkRepository;
 import com.rawa.cloud.repository.UserRepository;
@@ -78,7 +79,9 @@ public class ShareServiceImpl implements ShareService {
         Link link = getLinkWidthPassword(linkId, password);
         File file = fileRepository.findById(fileId)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, fileId));
-        return previewService.preview(nasService.download(file.getUuid(), true));
+        User user = userRepository.findUserByUsername(link.getCreationBy());
+        if (user == null) throw new AppException(HttpJsonStatus.USER_NOT_FOUND, link.getCreationBy());
+        return previewService.preview(nasService.download(file.getUuid(), true), user.getUsername());
     }
 
     @Override
@@ -88,7 +91,7 @@ public class ShareServiceImpl implements ShareService {
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, fileId));
         User user = userRepository.findUserByUsername(link.getCreationBy());
         if (user == null) throw new AppException(HttpJsonStatus.USER_NOT_FOUND, link.getCreationBy());
-        return fileService.download(fileId, user);
+        return fileService.download(fileId, user, true);
     }
 
     private Link getLinkWidthPassword (Long linkId, String password) {

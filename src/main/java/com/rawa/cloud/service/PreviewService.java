@@ -3,5 +3,5 @@ package com.rawa.cloud.service;
 import java.io.File;
 
 public interface PreviewService {
-    File preview (File file);
+    File preview (File file, String username);
 }

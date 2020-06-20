@@ -5,11 +5,17 @@ import com.rawa.cloud.constant.HttpJsonStatus;
 import com.rawa.cloud.domain.UserWatermark;
 import com.rawa.cloud.domain.Watermark;
 import com.rawa.cloud.exception.AppException;
+import com.rawa.cloud.helper.ContextHelper;
+import com.rawa.cloud.helper.FileHelper;
+import com.rawa.cloud.helper.WaterMarkHelper;
 import com.rawa.cloud.model.userwatermark.UserWatermarkAddModel;
 import com.rawa.cloud.model.userwatermark.UserWatermarkQueryModel;
 import com.rawa.cloud.model.userwatermark.UserWatermarkUpdateModel;
+import com.rawa.cloud.properties.AppProperties;
 import com.rawa.cloud.repository.UserWatermarkRepository;
 import com.rawa.cloud.repository.WatermarkRepository;
+import com.rawa.cloud.service.NasService;
+import com.rawa.cloud.service.PropertyService;
 import com.rawa.cloud.service.UserWatermarkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,9 +23,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.Predicate;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserWatermarkServiceImpl implements UserWatermarkService {
+
+    static final List<String> IMAGE_FILES = Arrays.asList("gif", "ico", "jpg", "jpeg", "png");
+
+    @Autowired
+    AppProperties appProperties;
+
+    @Autowired
+    NasService nasService;
 
     @Autowired
     WatermarkRepository watermarkRepository;
@@ -76,7 +94,7 @@ public class UserWatermarkServiceImpl implements UserWatermarkService {
                 predicate.getExpressions().add(criteriaBuilder.equal(root.get("preview"), preview));
             }
             return predicate;
-        }), model.toPage(false, "creationTime"));
+        }), model.toPage(false, "createdDate"));
     }
 
     @Override
@@ -88,5 +106,24 @@ public class UserWatermarkServiceImpl implements UserWatermarkService {
     @HasSuperRole
     public void delete(Long id) {
         userWatermarkRepository.deleteById(id);
+    }
+
+    @Override
+    public File generateWatermark(File source, String username) {
+        if (!isImage(source)) return source;
+        UserWatermark userWatermark = userWatermarkRepository.findByUsername(username);
+        if (userWatermark == null || !Boolean.TRUE.equals(userWatermark.getPreview())) return source;
+        Watermark watermark = userWatermark.getWatermark();
+        if (watermark == null || !Boolean.TRUE.equals(watermark.getStatus())) return source;
+        File target = new File(appProperties.getTemp(), UUID.randomUUID().toString());
+        File logo = watermark.getUuid() != null ? nasService.download(watermark.getUuid(), true): null;
+        return WaterMarkHelper.addWatermark(source, target, logo, watermark.getContent());
+    }
+
+    //
+
+    private boolean isImage(File file) {
+        String suffix = FileHelper.getSuffix(file.getName());
+        return IMAGE_FILES.contains(suffix);
     }
 }

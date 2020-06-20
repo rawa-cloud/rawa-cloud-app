@@ -1,11 +1,16 @@
 package com.rawa.cloud.service.impl;
 
 import com.rawa.cloud.constant.HttpJsonStatus;
+import com.rawa.cloud.domain.UserWatermark;
+import com.rawa.cloud.domain.Watermark;
 import com.rawa.cloud.exception.AppException;
 import com.rawa.cloud.helper.*;
 import com.rawa.cloud.properties.AppProperties;
+import com.rawa.cloud.repository.UserWatermarkRepository;
+import com.rawa.cloud.service.NasService;
 import com.rawa.cloud.service.PreviewService;
 import com.rawa.cloud.service.PropertyService;
+import com.rawa.cloud.service.UserWatermarkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,15 +35,21 @@ public class PreviewServiceImpl implements PreviewService {
     @Autowired
     PropertyService propertyService;
 
+    @Autowired
+    UserWatermarkService userWatermarkService;
+
+    @Autowired
+    NasService nasService;
 
     @Override
-    public File preview(File file) {
-        if (isOffice(file)) {
-            return convertOffice(file);
-        } else if (isImage(file)) {
-            return handleImage(file);
-        }
-        return file;
+    public File preview(File file, String username) {
+        return userWatermarkService.generateWatermark(file, username);
+//        if (isOffice(file)) {
+//            return convertOffice(file);
+//        } else if (isImage(file)) {
+//            return handleImage(file);
+//        }
+//        return file;
     }
 
     private boolean isOffice(File file) {
@@ -46,23 +57,20 @@ public class PreviewServiceImpl implements PreviewService {
         return OFFICE_FILES.contains(suffix);
     }
 
-    private boolean isImage(File file) {
-        String suffix = FileHelper.getSuffix(file.getName());
-        return IMAGE_FILES.contains(suffix);
-    }
-
-    private File handleImage (File file) {
-        if(!"Y".equals(propertyService.getValue("preview.mark.enabled"))) return file;
-        File target = new File(appProperties.getTemp(), UUID.randomUUID().toString());
-        String date = DateHelper.formatDate(new Date(), "yyyy/MM/dd HH:mm:ss");
-        String content = propertyService.getValue("preview.mark.content");
-        String user = "";
-        if ("Y".equals(propertyService.getValue("preview.mark.user.enabled"))) {
-            user = ContextHelper.getCurrentUsername();
-        }
-        String text = content + " " + date + " " + user;
-        return WaterMarkHelper.addWatermark(file, target, text);
-    }
+//    private boolean isImage(File file) {
+//        String suffix = FileHelper.getSuffix(file.getName());
+//        return IMAGE_FILES.contains(suffix);
+//    }
+//
+//    private File handleImage (File file) {
+//        UserWatermark userWatermark = userWatermarkRepository.findByUsername(ContextHelper.getCurrentUsername());
+//        if (userWatermark == null || !Boolean.TRUE.equals(userWatermark.getPreview()) return file;
+//        Watermark watermark = userWatermark.getWatermark();
+//        if (watermark == null || !Boolean.TRUE.equals(watermark.getStatus())) return file;
+//        File target = new File(appProperties.getTemp(), UUID.randomUUID().toString());
+//        File logo = watermark.getUuid() != null ? nasService.download(watermark.getUuid(), true): null;
+//        return WaterMarkHelper.addWatermark(file, target, logo, watermark.getContent());
+//    }
 
     private File convertOffice (File file) {
 //        String filename = EncryptHelper.MD5(file.getAbsolutePath());

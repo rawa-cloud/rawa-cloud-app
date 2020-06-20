@@ -9,4 +9,6 @@ public interface UserWatermarkRepository extends BaseRepository<UserWatermark>, 
     boolean existsByUsernameAndWatermark(String user, Watermark watermark);
 
     void deleteAllByWatermark(Watermark watermark);
+
+    UserWatermark findByUsername(String username);
 }

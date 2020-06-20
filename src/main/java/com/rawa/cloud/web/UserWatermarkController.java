@@ -53,7 +53,7 @@ public class UserWatermarkController {
     }
 
     @ApiOperation("删除")
-    @DeleteMapping("")
+    @DeleteMapping("/{id}")
     public JsonResult delete(@PathVariable Long id) {
         userWatermarkService.delete(id);
         return JsonResult.success(null);

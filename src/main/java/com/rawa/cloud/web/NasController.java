@@ -31,7 +31,7 @@ public class NasController {
     @ApiOperation("下载文件")
     @GetMapping("/download/{uuid}")
     public ResponseEntity<FileSystemResource> download (@PathVariable String uuid, HttpServletResponse response) {
-        java.io.File rawFile = nasService.download(uuid, false);
+        java.io.File rawFile = nasService.download(uuid, true);
         return FileHelper.download(rawFile, response);
     }
 

@@ -529,7 +529,7 @@ public class LibraryServiceImpl implements LibraryService {
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_NOT_FOUND, id));
         File file = library.getFile();
         if (file == null || file.getDir()) throw new AppException(HttpJsonStatus.FILE_NOT_FOUND, null);
-        return previewService.preview(nasService.download(file.getUuid(), true));
+        return previewService.preview(nasService.download(file.getUuid(), true), ContextHelper.getCurrentUsername());
     }
 
     @Override
@@ -538,7 +538,7 @@ public class LibraryServiceImpl implements LibraryService {
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.LIBRARY_NOT_FOUND, id));
         File file = library.getFile();
         if (file == null || file.getDir()) throw new AppException(HttpJsonStatus.FILE_NOT_FOUND, null);
-        return fileService.download(file.getId());
+        return fileService.download(file.getId(), true);
     }
 
     private boolean isEnumType (LibraryFieldDef fieldDef) {

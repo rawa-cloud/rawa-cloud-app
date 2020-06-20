@@ -59,6 +59,9 @@ public class FileServiceImpl implements FileService {
     FileLogService fileLogService;
 
     @Autowired
+    UserWatermarkService userWatermarkService;
+
+    @Autowired
     FileRepository fileRepository;
 
     @Autowired
@@ -272,23 +275,30 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public java.io.File download(Long id) {
+    public java.io.File download(Long id, boolean watermark) {
         User user = userRepository.findById(ContextHelper.getCurrentUserId())
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.USER_NOT_FOUND, ContextHelper.getCurrentUserId()));
-        return download(id, user);
+        return download(id, user, watermark);
     }
 
     @Override
-    public java.io.File download(Long id, User user) {
+    public java.io.File download(Long id, User user, boolean watermark) {
         fileLogService.add(id, FileOptType.download, "");
         File file = fileRepository.findById(id)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
         if(!hasAuthority(file, user,true, Umask.DOWNLOAD))
             throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.DOWNLOAD);
-        if(!file.getDir()) return nasService.download(file.getUuid(), true);
+        if(!file.getDir()) {
+            java.io.File f = nasService.download(file.getUuid(), true);
+            if (watermark) {
+                return userWatermarkService.generateWatermark(f, user.getUsername());
+            } else {
+                return f;
+            }
+        }
         java.io.File base = new java.io.File(appProperties.getTemp(), "zip_" + UUID.randomUUID().toString());
         base.mkdir();
-        java.io.File dir = downloadDir(file, base, user);
+        java.io.File dir = downloadDir(file, base, user, watermark);
         java.io.File zipFile = new java.io.File(base, file.getName() + ".zip");
         ZipHelper.compress(dir, zipFile);
         return zipFile;
@@ -301,7 +311,7 @@ public class FileServiceImpl implements FileService {
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
         if(!hasAuthority(file, true, Umask.PREVIW))
             throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.PREVIW);
-        return previewService.preview(nasService.download(file.getUuid(), true));
+        return previewService.preview(nasService.download(file.getUuid(), true), ContextHelper.getCurrentUsername());
     }
 
     @Override
@@ -670,7 +680,7 @@ public class FileServiceImpl implements FileService {
     public java.io.File exportFile(java.io.File base) {
         File root = fileRepository.findFileByParentIsNull();
         User user = userRepository.findUserByUsername("root");
-        return downloadDir(root, base, user);
+        return downloadDir(root, base, user, false);
     }
 
     @Override
@@ -1092,7 +1102,7 @@ public class FileServiceImpl implements FileService {
         if (!access) throw new AppException(HttpJsonStatus.FILE_OPT_DENIED, target.getId());
     }
 
-    private java.io.File downloadDir (File dir, java.io.File parent, User user) {
+    private java.io.File downloadDir (File dir, java.io.File parent, User user, boolean watermark) {
         java.io.File root =  new java.io.File(parent, dir.getName());
         root.mkdir();
         dir
@@ -1103,10 +1113,13 @@ public class FileServiceImpl implements FileService {
              })
             .forEach(s -> {
                if (s.getDir()) {
-                   downloadDir(s, root, user);
+                   downloadDir(s, root, user, watermark);
                } else {
                    java.io.File f = new java.io.File(root, s.getName());
                    java.io.File rawFile = nasService.download(s.getUuid(), true);
+                   if (watermark) {
+                       rawFile = userWatermarkService.generateWatermark(f, user.getUsername());
+                   }
                    try {
                        FileCopyUtils.copy(rawFile, f);
                        log.info("下载文件: " + f.getName());

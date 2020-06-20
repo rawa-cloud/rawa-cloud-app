@@ -25,9 +25,9 @@ public interface FileService {
 
     File getUserRootFile();
 
-    java.io.File download(Long id);
+    java.io.File download(Long id, boolean watermark);
 
-    java.io.File download(Long id, User user);
+    java.io.File download(Long id, User user, boolean watermark);
 
     java.io.File preview(Long id);
 

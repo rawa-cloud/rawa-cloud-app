@@ -112,7 +112,7 @@ public class FileController extends RestfulController<File, FileAddModel, FileUp
     @ApiOperation("下载文件")
     @GetMapping("/download/{id}")
     public ResponseEntity<FileSystemResource> download (@PathVariable Long id, HttpServletResponse response) {
-        java.io.File rawFile = fileService.download(id);
+        java.io.File rawFile = fileService.download(id, true);
         return FileHelper.download(rawFile, response);
     }
 

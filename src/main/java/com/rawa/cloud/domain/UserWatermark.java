@@ -28,5 +28,15 @@ public class UserWatermark extends BaseEntity {
 
     @ApiModelProperty(value = "预览时使用")
     private Boolean preview;
+
+    // domian
+
+    public Long getWatermarkId () {
+        return watermark != null ? watermark.getId() : null;
+    }
+
+    public String getWatermarkName () {
+        return watermark != null ? watermark.getName() : null;
+    }
 }
 
