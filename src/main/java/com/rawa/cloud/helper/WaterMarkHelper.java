@@ -37,7 +37,7 @@ public class WaterMarkHelper {
             int logoWidth = 0;
             if (logo != null) {
                 int maxWidth = (int)(srcImgwidth * logoRadio);
-                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP,0.7f));
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP,0.4f));
                 Image logoImage = ImageIO.read(logo);
                 int w = logoImage.getWidth(null);
                 int h = logoImage.getHeight(null);
@@ -56,7 +56,7 @@ public class WaterMarkHelper {
                 int x = logoWidth + (int)(srcImgwidth * spaceRatio) + 64;
                 int textWidth = srcImgwidth - x - (int)(srcImgwidth * spaceRatio);
                 int fontSize = getFontSize(textWidth, text);
-                Font font = new Font("微软雅黑",Font.PLAIN, fontSize);
+                Font font = new Font("Serif",Font.PLAIN, fontSize);
                 g.setFont(font);
                 int lineHeight = (int)(fontSize * 1.5);
                 int h = lineHeight * text.length;
