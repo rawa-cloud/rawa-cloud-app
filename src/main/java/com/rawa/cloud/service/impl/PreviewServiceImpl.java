@@ -43,7 +43,7 @@ public class PreviewServiceImpl implements PreviewService {
 
     @Override
     public File preview(File file, String username) {
-        return userWatermarkService.generateWatermark(file, username);
+        return userWatermarkService.generateWatermark(file, username, "preview");
 //        if (isOffice(file)) {
 //            return convertOffice(file);
 //        } else if (isImage(file)) {

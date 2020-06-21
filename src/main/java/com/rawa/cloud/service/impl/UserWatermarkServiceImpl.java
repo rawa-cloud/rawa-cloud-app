@@ -109,15 +109,17 @@ public class UserWatermarkServiceImpl implements UserWatermarkService {
     }
 
     @Override
-    public File generateWatermark(File source, String username) {
+    public File generateWatermark(File source, String username, String type) {
         if (!isImage(source)) return source;
         UserWatermark userWatermark = userWatermarkRepository.findByUsername(username);
-        if (userWatermark == null || !Boolean.TRUE.equals(userWatermark.getPreview())) return source;
+        if (userWatermark == null) return source;
+        Boolean has = "download".equals(type) ? userWatermark.getDownload() : userWatermark.getPreview();
+        if (!Boolean.TRUE.equals(has)) return source;
         Watermark watermark = userWatermark.getWatermark();
         if (watermark == null || !Boolean.TRUE.equals(watermark.getStatus())) return source;
         File target = new File(appProperties.getTemp(), UUID.randomUUID().toString());
         File logo = watermark.getUuid() != null ? nasService.download(watermark.getUuid(), true): null;
-        return WaterMarkHelper.addWatermark(source, target, logo, watermark.getContent());
+        return WaterMarkHelper.addWatermark(watermark, source, target, logo, watermark.getContent());
     }
 
     //

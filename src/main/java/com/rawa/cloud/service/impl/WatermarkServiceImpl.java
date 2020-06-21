@@ -38,6 +38,11 @@ public class WatermarkServiceImpl implements WatermarkService {
         watermark.setContent(model.getContent());
         watermark.setUuid(model.getUuid());
         watermark.setStatus(model.getStatus());
+        watermark.setWidthRadio(model.getWidthRadio());
+        watermark.setLogoWidthRadio(model.getLogoWidthRadio());
+        watermark.setHorizontalPosition(model.getHorizontalPosition());
+        watermark.setVerticalPosition(model.getVerticalPosition());
+        watermark.setOpacity(model.getOpacity());
         return watermarkRepository.save(watermark).getId();
     }
 
@@ -49,6 +54,11 @@ public class WatermarkServiceImpl implements WatermarkService {
         watermark.setUuid(model.getUuid());
         watermark.setContent(model.getContent());
         watermark.setStatus(model.getStatus());
+        watermark.setWidthRadio(model.getWidthRadio());
+        watermark.setLogoWidthRadio(model.getLogoWidthRadio());
+        watermark.setHorizontalPosition(model.getHorizontalPosition());
+        watermark.setVerticalPosition(model.getVerticalPosition());
+        watermark.setOpacity(model.getOpacity());
         watermarkRepository.save(watermark);
     }
 

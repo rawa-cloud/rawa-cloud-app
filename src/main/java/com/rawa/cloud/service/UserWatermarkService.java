@@ -20,5 +20,5 @@ public interface UserWatermarkService {
 
     void delete(Long id);
 
-    File generateWatermark (File source, String username);
+    File generateWatermark (File source, String username, String type);
 }

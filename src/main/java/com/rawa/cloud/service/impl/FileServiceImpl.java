@@ -291,7 +291,7 @@ public class FileServiceImpl implements FileService {
         if(!file.getDir()) {
             java.io.File f = nasService.download(file.getUuid(), true);
             if (watermark) {
-                return userWatermarkService.generateWatermark(f, user.getUsername());
+                return userWatermarkService.generateWatermark(f, user.getUsername(), "download");
             } else {
                 return f;
             }
@@ -1118,7 +1118,7 @@ public class FileServiceImpl implements FileService {
                    java.io.File f = new java.io.File(root, s.getName());
                    java.io.File rawFile = nasService.download(s.getUuid(), true);
                    if (watermark) {
-                       rawFile = userWatermarkService.generateWatermark(f, user.getUsername());
+                       rawFile = userWatermarkService.generateWatermark(f, user.getUsername(), "download");
                    }
                    try {
                        FileCopyUtils.copy(rawFile, f);
