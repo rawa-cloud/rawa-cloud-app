@@ -41,11 +41,19 @@ public class WaterMarkHelper {
             int logoWidth = (int)(watermarkWidth * logoWidthRatio);
             int textGutter = 12;
 
-            String[] text = watermarkContent.split("\n");
-            int textWidth = watermarkWidth - logoWidth - textGutter;
-            int fontSize = getFontSize(textWidth, text);
-            int lineHeight = (int)(fontSize * 1.5);
-            int textHeight = lineHeight * text.length;
+            String[] text = null;
+            int textWidth = 0;
+            int fontSize = 0;
+            int lineHeight = 0;
+            int textHeight = 0;
+
+            if (!StringUtils.isEmpty(watermarkContent)) {
+                text = watermarkContent.split("\n");
+                textWidth = watermarkWidth - logoWidth - textGutter;
+                fontSize = getFontSize(textWidth, text);
+                lineHeight = (int)(fontSize * 1.5);
+                textHeight = lineHeight * text.length;
+            }
 
             int spaceWidth = 12;
             int spaceHeight = 12;
