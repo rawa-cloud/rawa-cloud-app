@@ -84,7 +84,7 @@ public class WaterMarkHelper {
 
                 if (verticalPosition.equals(VerticalPosition.top)) {
                     y = spaceHeight;
-                } else if (horizontalPosition.equals(HorizontalPosition.center)) {
+                } else if (verticalPosition.equals(VerticalPosition.center)) {
                     y = (height - logoHeight) / 2;
                 } else {
                     y = height - spaceHeight - Math.max(logoHeight, textHeight);
