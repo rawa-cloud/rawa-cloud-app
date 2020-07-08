@@ -126,6 +126,6 @@ public class UserWatermarkServiceImpl implements UserWatermarkService {
 
     private boolean isImage(File file) {
         String suffix = FileHelper.getSuffix(file.getName());
-        return IMAGE_FILES.contains(suffix);
+        return IMAGE_FILES.contains(suffix.toLowerCase());
     }
 }
