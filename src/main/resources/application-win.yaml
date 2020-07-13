@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3308/rawa-cloud?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=GMT%2B8
+    username: app_admin
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+nas:
+  path: C:/rawa/rawa-data/nas
+
+app:
+  office-host: rawa-office
+  temp: C:/rawa/rawa-data/temp
+  import-path: C:/rawa/rawa-data/imports
+  export-path: C:/rawa/rawa-data/exports
