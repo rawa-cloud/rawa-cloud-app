@@ -7,6 +7,7 @@ import com.rawa.cloud.domain.Watermark;
 import com.rawa.cloud.exception.AppException;
 import com.rawa.cloud.helper.ContextHelper;
 import com.rawa.cloud.helper.FileHelper;
+import com.rawa.cloud.helper.MD5Helper;
 import com.rawa.cloud.helper.WaterMarkHelper;
 import com.rawa.cloud.model.userwatermark.UserWatermarkAddModel;
 import com.rawa.cloud.model.userwatermark.UserWatermarkQueryModel;
@@ -17,6 +18,7 @@ import com.rawa.cloud.repository.WatermarkRepository;
 import com.rawa.cloud.service.NasService;
 import com.rawa.cloud.service.PropertyService;
 import com.rawa.cloud.service.UserWatermarkService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class UserWatermarkServiceImpl implements UserWatermarkService {
 
@@ -117,7 +120,11 @@ public class UserWatermarkServiceImpl implements UserWatermarkService {
         if (!Boolean.TRUE.equals(has)) return source;
         Watermark watermark = userWatermark.getWatermark();
         if (watermark == null || !Boolean.TRUE.equals(watermark.getStatus())) return source;
-        File target = new File(appProperties.getTemp(), UUID.randomUUID().toString());
+        File target = new File(appProperties.getTemp(), generateFileName(watermark, source));
+        if (target.exists()) {
+            log.info("水印缓存: " + source.getName() + "; " + watermark.getName());
+            return target;
+        }
         File logo = watermark.getUuid() != null ? nasService.download(watermark.getUuid(), true): null;
         return WaterMarkHelper.addWatermark(watermark, source, target, logo, watermark.getContent());
     }
@@ -127,5 +134,11 @@ public class UserWatermarkServiceImpl implements UserWatermarkService {
     private boolean isImage(File file) {
         String suffix = FileHelper.getSuffix(file.getName());
         return IMAGE_FILES.contains(suffix.toLowerCase());
+    }
+
+    private String generateFileName (Watermark watermark, File file) {
+        String path = file.getAbsolutePath();
+        Long updateDate = watermark.getUpdatedDate().getTime();
+        return MD5Helper.encode(path + "###" + updateDate);
     }
 }

@@ -1118,7 +1118,7 @@ public class FileServiceImpl implements FileService {
                    java.io.File f = new java.io.File(root, s.getName());
                    java.io.File rawFile = nasService.download(s.getUuid(), true);
                    if (watermark) {
-                       rawFile = userWatermarkService.generateWatermark(f, user.getUsername(), "download");
+                       rawFile = userWatermarkService.generateWatermark(rawFile, user.getUsername(), "download");
                    }
                    try {
                        FileCopyUtils.copy(rawFile, f);
