@@ -20,7 +20,7 @@ public class TmpClearJob {
     @Autowired
     AppProperties appProperties;
 
-    @Scheduled(cron = "0 0 4 * * ?")
+    @Scheduled(cron = "0 0 4 ? * MON")
     public void clear() {
         log.info("开始Job: 清理temp临时文件夹");
         // 清理超过24小时临时文件
@@ -28,7 +28,7 @@ public class TmpClearJob {
         List<File> clearFiles = Arrays.stream(root.listFiles()).filter(s -> {
             long old = s.lastModified();
             long now = new Date().getTime();
-            return now - old > 1000 * 60 * 60 * 24;
+            return now - old > 1000 * 60 * 60 * 24 * 7;
         }).collect(Collectors.toList());
         for (File tmp: clearFiles) {
             FileSystemUtils.deleteRecursively(tmp);
