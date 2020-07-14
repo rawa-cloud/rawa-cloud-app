@@ -123,6 +123,13 @@ public class FileController extends RestfulController<File, FileAddModel, FileUp
         return FileHelper.download(rawFile, response);
     }
 
+    @ApiOperation("预览图片，设有缓存")
+    @GetMapping("/preview-image/{id}")
+    public ResponseEntity<FileSystemResource> previewImage (@PathVariable Long id, HttpServletResponse response) {
+        java.io.File rawFile = fileService.preview(id);
+        return FileHelper.downloadWithCache(rawFile, response);
+    }
+
     @ApiOperation("查询文件轨迹列表")
     @GetMapping("/{id}/records")
     public JsonResult<List<Record>> queryRecords (@PathVariable Long id) {

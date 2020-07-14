@@ -32,6 +32,22 @@ public class FileHelper {
                 .body(new FileSystemResource(file));
     }
 
+    public static ResponseEntity<FileSystemResource> downloadWithCache(java.io.File file, HttpServletResponse response) {
+        String filename = file.getName();
+        filename = new String(filename.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Cache-Control", "max-age=30,only-if-cached");
+        headers.add("Content-Disposition", "attachment; filename=" + filename);
+//        headers.add("Pragma", "no-cache");
+//        headers.add("Expires", "0");
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentLength(file.length())
+                .contentType(MediaType.parseMediaType("application/octet-stream"))
+                .body(new FileSystemResource(file));
+    }
+
     public static boolean delete (File file) {
         if (!file.exists()) {
             return false;
