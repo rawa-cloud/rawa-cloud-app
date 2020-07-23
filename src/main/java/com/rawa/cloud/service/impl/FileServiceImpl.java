@@ -1124,7 +1124,8 @@ public class FileServiceImpl implements FileService {
                        FileCopyUtils.copy(rawFile, f);
                        log.info("下载文件: " + f.getName());
                    } catch (IOException e) {
-                       throw new AppException(HttpJsonStatus.ERROR, e);
+                       log.error("文件下载失败：" + f.getAbsolutePath() + ";" + f.getName());
+//                       throw new AppException(HttpJsonStatus.ERROR, e);
                    }
                }
             });

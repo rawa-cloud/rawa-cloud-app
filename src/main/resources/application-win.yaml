@@ -9,10 +9,10 @@ spring:
       ddl-auto: update
 
 nas:
-  path: C:/rawa/rawa-data/nas
+  path: D:/rawa/rawa-data/nas
 
 app:
   office-host: rawa-office
-  temp: C:/rawa/rawa-data/temp
-  import-path: C:/rawa/rawa-data/imports
-  export-path: C:/rawa/rawa-data/exports
+  temp: D:/rawa/rawa-data/temp
+  import-path: D:/rawa/rawa-data/imports
+  export-path: D:/rawa/rawa-data/exports
