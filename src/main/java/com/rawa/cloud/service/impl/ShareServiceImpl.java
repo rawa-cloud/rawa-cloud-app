@@ -91,7 +91,7 @@ public class ShareServiceImpl implements ShareService {
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, fileId));
         User user = userRepository.findUserByUsername(link.getCreationBy());
         if (user == null) throw new AppException(HttpJsonStatus.USER_NOT_FOUND, link.getCreationBy());
-        return fileService.download(fileId, user, true);
+        return fileService.download(fileId, user, true, null, null);
     }
 
     private Link getLinkWidthPassword (Long linkId, String password) {

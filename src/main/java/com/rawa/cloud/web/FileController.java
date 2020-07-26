@@ -12,6 +12,7 @@ import com.rawa.cloud.service.FileService;
 import com.rawa.cloud.web.common.RestfulController;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
@@ -109,10 +110,17 @@ public class FileController extends RestfulController<File, FileAddModel, FileUp
         return JsonResult.success(fileService.getUserRootFile());
     }
 
+    @ApiOperation("图片剪裁下载")
+    @GetMapping("/download-image/{id}")
+    public ResponseEntity<FileSystemResource> downloadImage (@PathVariable Long id, Integer height, Integer width, HttpServletResponse response) {
+        java.io.File rawFile = fileService.download(id, true, height, width);
+        return FileHelper.download(rawFile, response);
+    }
+
     @ApiOperation("下载文件")
     @GetMapping("/download/{id}")
     public ResponseEntity<FileSystemResource> download (@PathVariable Long id, HttpServletResponse response) {
-        java.io.File rawFile = fileService.download(id, true);
+        java.io.File rawFile = fileService.download(id, true, null, null);
         return FileHelper.download(rawFile, response);
     }
 

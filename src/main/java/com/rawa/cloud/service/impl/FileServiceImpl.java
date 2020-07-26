@@ -3,10 +3,7 @@ package com.rawa.cloud.service.impl;
 import com.rawa.cloud.constant.*;
 import com.rawa.cloud.domain.*;
 import com.rawa.cloud.exception.AppException;
-import com.rawa.cloud.helper.ContextHelper;
-import com.rawa.cloud.helper.FileHelper;
-import com.rawa.cloud.helper.LangHelper;
-import com.rawa.cloud.helper.ZipHelper;
+import com.rawa.cloud.helper.*;
 import com.rawa.cloud.model.file.*;
 import com.rawa.cloud.properties.AppProperties;
 import com.rawa.cloud.repository.FileRepository;
@@ -275,21 +272,21 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public java.io.File download(Long id, boolean watermark) {
+    public java.io.File download(Long id, boolean watermark, Integer height, Integer width) {
         User user = userRepository.findById(ContextHelper.getCurrentUserId())
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.USER_NOT_FOUND, ContextHelper.getCurrentUserId()));
-        return download(id, user, watermark);
+        return download(id, user, watermark, height, width);
     }
 
     @Override
-    public java.io.File download(Long id, User user, boolean watermark) {
+    public java.io.File download(Long id, User user, boolean watermark, Integer height, Integer width) {
         fileLogService.add(id, FileOptType.download, "");
         File file = fileRepository.findById(id)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
         if(!hasAuthority(file, user,true, Umask.DOWNLOAD))
             throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.DOWNLOAD);
         if(!file.getDir()) {
-            java.io.File f = nasService.download(file.getUuid(), true);
+            java.io.File f = scaleImage(nasService.download(file.getUuid(), true), height, width);
             if (watermark) {
                 return userWatermarkService.generateWatermark(f, user.getUsername(), "download");
             } else {
@@ -298,7 +295,7 @@ public class FileServiceImpl implements FileService {
         }
         java.io.File base = new java.io.File(appProperties.getTemp(), "zip_" + UUID.randomUUID().toString());
         base.mkdir();
-        java.io.File dir = downloadDir(file, base, user, watermark);
+        java.io.File dir = downloadDir(file, base, user, watermark, height, width);
         java.io.File zipFile = new java.io.File(base, file.getName() + ".zip");
         ZipHelper.compress(dir, zipFile);
         return zipFile;
@@ -680,7 +677,7 @@ public class FileServiceImpl implements FileService {
     public java.io.File exportFile(java.io.File base) {
         File root = fileRepository.findFileByParentIsNull();
         User user = userRepository.findUserByUsername("root");
-        return downloadDir(root, base, user, false);
+        return downloadDir(root, base, user, false, null, null);
     }
 
     @Override
@@ -1102,7 +1099,7 @@ public class FileServiceImpl implements FileService {
         if (!access) throw new AppException(HttpJsonStatus.FILE_OPT_DENIED, target.getId());
     }
 
-    private java.io.File downloadDir (File dir, java.io.File parent, User user, boolean watermark) {
+    private java.io.File downloadDir (File dir, java.io.File parent, User user, boolean watermark, Integer height, Integer width) {
         java.io.File root =  new java.io.File(parent, dir.getName());
         root.mkdir();
         dir
@@ -1113,10 +1110,10 @@ public class FileServiceImpl implements FileService {
              })
             .forEach(s -> {
                if (s.getDir()) {
-                   downloadDir(s, root, user, watermark);
+                   downloadDir(s, root, user, watermark, height, width);
                } else {
                    java.io.File f = new java.io.File(root, s.getName());
-                   java.io.File rawFile = nasService.download(s.getUuid(), true);
+                   java.io.File rawFile = scaleImage(nasService.download(s.getUuid(), true), height, width);
                    if (watermark) {
                        rawFile = userWatermarkService.generateWatermark(rawFile, user.getUsername(), "download");
                    }
@@ -1234,5 +1231,12 @@ public class FileServiceImpl implements FileService {
             return predicate;
         }), pageable).getContent();
         return ret;
+    }
+
+    private java.io.File scaleImage (java.io.File source, Integer height, Integer width) {
+        if (!ImageHelper.isImage(source)) return source;
+        if (height == null && width == null) return source;
+        java.io.File target = new java.io.File(appProperties.getTemp(), UUID.randomUUID().toString() + "_" + source.getName());
+        return ImageHelper.scale(source, target, height, width);
     }
 }
