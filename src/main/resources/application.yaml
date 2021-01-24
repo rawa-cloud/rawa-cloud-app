@@ -9,8 +9,8 @@ spring:
     open-in-view: true
   servlet:
     multipart:
-      max-request-size: 1000MB
-      max-file-size: 1000MB
+      max-request-size: 16384MB
+      max-file-size: 16384MB
   jackson:
     date-format: yyyy/MM/dd HH:mm:ss
     time-zone: GMT+8
