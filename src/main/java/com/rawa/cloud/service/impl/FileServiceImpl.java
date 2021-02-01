@@ -80,9 +80,9 @@ public class FileServiceImpl implements FileService {
         if (parent != null && !parent.getDir() || parent.isUserRoot())
             throw new AppException(HttpJsonStatus.FILE_NOT_FOUND, parentId);
 
-        Umask umask = model.getDir() ? Umask.MK_DIR : Umask.NEW_FILE;
-        if (!hasAuthority(parent, true, umask))
-            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
+//        Umask umask = model.getDir() ? Umask.MK_DIR : Umask.NEW_FILE;
+//        if (!hasAuthority(parent, true, umask))
+//            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
 
         File file = new File();
 
@@ -170,8 +170,8 @@ public class FileServiceImpl implements FileService {
     public List<File> query(FileQueryModel model) {
         Long parentId = model.getParentId();
         File parent = fileRepository.findById(parentId).orElse(null);
-        boolean access = hasAuthority(parent, true, Umask.ACCESS);
-        if (!access) return Collections.emptyList();
+//        boolean access = hasAuthority(parent, true, Umask.ACCESS);
+//        if (!access) return Collections.emptyList();
         Boolean dir = model.getDir();
         if (parent == null || !parent.getStatus()) return Collections.emptyList();
 //        File query = new File();
@@ -181,7 +181,7 @@ public class FileServiceImpl implements FileService {
 
         boolean isRoot = parent.isRoot();
 
-        final boolean admin = isAdminFile(parent, false);
+//        final boolean admin = isAdminFile(parent, false);
 
         List<File> ret = fileRepository.findAll((root, criteriaQuery, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();
@@ -195,7 +195,7 @@ public class FileServiceImpl implements FileService {
         });
         ret = ret.stream().filter(s -> {
             if (isRoot && s.isUserRoot()) return false; // 去除用户目录
-            if (!hasAuthority(s, false, Umask.ACCESS)) return false; // 无查看权限
+//            if (!hasAuthority(s, false, Umask.ACCESS)) return false; // 无查看权限
             // 有权限判断是否有子集 暂时不计算是否有子集， 这样会损失很多性能
 //            if (dir) {
 //                boolean leaf = s.getChildren().stream()
@@ -206,11 +206,11 @@ public class FileServiceImpl implements FileService {
 //                s.setLeaf(false);
 //            }
 
-            if (!admin) {
-                s.setAdmin(isAdminFile(s, true));
-            } else {
-                s.setAdmin(true);
-            }
+//            if (!admin) {
+//                s.setAdmin(isAdminFile(s, true));
+//            } else {
+//                s.setAdmin(true);
+//            }
             return true;
         })
         .collect(Collectors.toList());
@@ -220,7 +220,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public File get(Long id) {
         File file = fileRepository.findById(id).orElse(null);
-        if(!hasAuthority(file, true, Umask.ACCESS)) return null;
+//        if(!hasAuthority(file, true, Umask.ACCESS)) return null;
         return file;
     }
 
@@ -232,15 +232,15 @@ public class FileServiceImpl implements FileService {
         File file = fileRepository.findById(id)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
         File parent = file.getParent();
-        boolean access = hasAuthority(parent, true, Umask.DELETE);
+//        boolean access = hasAuthority(parent, true, Umask.DELETE);
         List<File> ret = parent.getChildren()
                 .stream().filter(s -> {
                     return ids.contains(s.getId()) && !s.isSystemFile(); // 非系统文件
                 })
                 .filter(s -> {
-                    Boolean has = hasAuthority(s, false, Umask.DELETE);
-                    boolean r = has == null ? access : has;
-                    if (r) {
+//                    Boolean has = hasAuthority(s, false, Umask.DELETE);
+//                    boolean r = has == null ? access : has;
+//                    if (r) {
                         s.setStatus(false);
                         traverse(s.getChildren(), f -> {
                             f.setStatus(false);
@@ -248,8 +248,8 @@ public class FileServiceImpl implements FileService {
                             return null;
                         });
                         logService.add(Log.build(LogModule.FILE, LogType.DELETE).lc(file.getPath()).end());
-                    }
-                    return r;
+//                    }
+                    return true;
                 })
                 .collect(Collectors.toList());
         fileRepository.saveAll(ret);
@@ -283,15 +283,15 @@ public class FileServiceImpl implements FileService {
         fileLogService.add(id, FileOptType.download, "");
         File file = fileRepository.findById(id)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
-        if(!hasAuthority(file, user,true, Umask.DOWNLOAD))
-            throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.DOWNLOAD);
+//        if(!hasAuthority(file, user,true, Umask.DOWNLOAD))
+//            throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.DOWNLOAD);
         if(!file.getDir()) {
             java.io.File f = scaleImage(nasService.download(file.getUuid(), true), height, width);
-            if (watermark) {
-                return userWatermarkService.generateWatermark(f, user.getUsername(), "download");
-            } else {
+//            if (watermark) {
+//                return userWatermarkService.generateWatermark(f, user.getUsername(), "download");
+//            } else {
                 return f;
-            }
+//            }
         }
         java.io.File base = new java.io.File(appProperties.getTemp(), "zip_" + UUID.randomUUID().toString());
         base.mkdir();
@@ -306,8 +306,8 @@ public class FileServiceImpl implements FileService {
         fileLogService.add(id, FileOptType.preview, "");
         File file = fileRepository.findById(id)
                 .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
-        if(!hasAuthority(file, true, Umask.PREVIW))
-            throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.PREVIW);
+//        if(!hasAuthority(file, true, Umask.PREVIW))
+//            throw new AppException(HttpJsonStatus.ACCESS_DENIED, Umask.PREVIW);
         return previewService.preview(nasService.download(file.getUuid(), true), ContextHelper.getCurrentUsername());
     }
 
@@ -324,8 +324,8 @@ public class FileServiceImpl implements FileService {
             throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
 
         // 判断权限
-        if (!hasAuthority(file, true, umask))
-            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
+//        if (!hasAuthority(file, true, umask))
+//            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
 
         // 判断名称是否重复
         String filename = model.getName();
@@ -353,8 +353,8 @@ public class FileServiceImpl implements FileService {
         if (file.getUuid().equals(uuid)) return;
 
         // 判断权限
-        if (!hasAuthority(file, true, umask))
-            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
+//        if (!hasAuthority(file, true, umask))
+//            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
 
         // 原文件丢失
         Nas nas = nasRepository.findNasByUuid(uuid);
@@ -403,8 +403,8 @@ public class FileServiceImpl implements FileService {
         if (file.getUuid().equals(uuid)) return;
 
         // 判断权限
-        if (!hasAuthority(file, user, true, umask))
-            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
+//        if (!hasAuthority(file, user, true, umask))
+//            throw new AppException(HttpJsonStatus.ACCESS_DENIED, umask);
 
         // 原文件丢失
         Nas nas = nasRepository.findNasByUuid(uuid);
@@ -463,42 +463,44 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Boolean hasAuthority(File file, boolean implicit, Umask... umasks) throws AppException {
-        User user = userRepository.findById(ContextHelper.getCurrentUserId())
-                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.ACCESS_DENIED, null));
-        return hasAuthority(file, user, implicit, umasks);
+//        User user = userRepository.findById(ContextHelper.getCurrentUserId())
+//                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.ACCESS_DENIED, null));
+//        return hasAuthority(file, user, implicit, umasks);
+        return true;
     }
 
     @Override
     public Boolean hasAuthority(File file, User user, boolean implicit, Umask... umasks) throws AppException {
-        if (file == null) return false;
-
-        // 个人文件夹只要所有者拥有所以权限
-        if (file.getUser() != null) {
-            boolean has = file.getUser().getId().equals(user.getId());
-            file.setUmask(has ? -1L : 0L);
-            return has;
-        }
-        if(user.hasSuperRole()) {
-            file.setUmask(-1L);
-            return true;
-        }
-        if(user.hasAdminRole() && user.isAdminFile(file)) {
-            file.setUmask(-1L);
-            return true;
-        }
-        if (!implicit) {
-            Long umask = authorityService.umask(user.getId(), file.getId(), true, false);
-            if (umask == null) {
-                umask = file.getParent() != null ? file.getParent().getUmask() : null;
-            }
-            if (umask == null) return null;
-            file.setUmask(umask);
-            if (Umask.hasAny(umask, umasks)) return true;
-            return false;
-        }
-        Long umask = authorityService.umask(user.getId(), file.getId(), true, true);
-        file.setUmask(umask);
-        return umask == null ? false : Umask.hasAny(umask, umasks);
+//        if (file == null) return false;
+//
+//        // 个人文件夹只要所有者拥有所以权限
+//        if (file.getUser() != null) {
+//            boolean has = file.getUser().getId().equals(user.getId());
+//            file.setUmask(has ? -1L : 0L);
+//            return has;
+//        }
+//        if(user.hasSuperRole()) {
+//            file.setUmask(-1L);
+//            return true;
+//        }
+//        if(user.hasAdminRole() && user.isAdminFile(file)) {
+//            file.setUmask(-1L);
+//            return true;
+//        }
+//        if (!implicit) {
+//            Long umask = authorityService.umask(user.getId(), file.getId(), true, false);
+//            if (umask == null) {
+//                umask = file.getParent() != null ? file.getParent().getUmask() : null;
+//            }
+//            if (umask == null) return null;
+//            file.setUmask(umask);
+//            if (Umask.hasAny(umask, umasks)) return true;
+//            return false;
+//        }
+//        Long umask = authorityService.umask(user.getId(), file.getId(), true, true);
+//        file.setUmask(umask);
+//        return umask == null ? false : Umask.hasAny(umask, umasks);
+        return true;
     }
 
     @Override
@@ -531,7 +533,7 @@ public class FileServiceImpl implements FileService {
                 .stream()
                 .filter(s -> {
                     if (Boolean.TRUE.equals(s.getSystem())) return false; // 系统文件不能移动
-                    if (!hasAuthority(s, true, Umask.DELETE)) return false; // 无删除权限不能移动
+//                    if (!hasAuthority(s, true, Umask.DELETE)) return false; // 无删除权限不能移动
                     return true;
                 }).collect(Collectors.toList());
         if (sources.size() < 1) return 0;
@@ -546,9 +548,9 @@ public class FileServiceImpl implements FileService {
             Log log = Log.build(LogModule.FILE, LogType.ADD).lc(path).st("移动到");
             sources = sources.stream().filter(s -> {
                 if (!Boolean.TRUE.equals(s.getStatus())) return false; // 无效文件
-                if (Boolean.FALSE.equals(hasAuthority(s, false, Umask.DELETE))) {
-                    throw new AppException(HttpJsonStatus.OPT_NOT_ALLOWED, s.getName());
-                }
+//                if (Boolean.FALSE.equals(hasAuthority(s, false, Umask.DELETE))) {
+//                    throw new AppException(HttpJsonStatus.OPT_NOT_ALLOWED, s.getName());
+//                }
                 if (exists(s.getName(), target)) {
                     throw new AppException(HttpJsonStatus.FILE_EXIST, s.getName());
                 }
@@ -582,7 +584,7 @@ public class FileServiceImpl implements FileService {
                 .stream()
                 .filter(s -> {
                     if (Boolean.TRUE.equals(s.getSystem())) return false; // 系统文件不能复制
-                    if (!hasAuthority(s, true, Umask.DOWNLOAD)) return false; // 无下载权限不能复制
+//                    if (!hasAuthority(s, true, Umask.DOWNLOAD)) return false; // 无下载权限不能复制
                     return true;
                 }).collect(Collectors.toList());
         if (sources.size() < 1) return 0;
@@ -614,11 +616,11 @@ public class FileServiceImpl implements FileService {
         int max = 20;
         while (files.size() > 0) {
             for (File f : files) {
-                if (hasAuthority(f, true, Umask.ACCESS)) {
+//                if (hasAuthority(f, true, Umask.ACCESS)) {
                     f.setFilePath(f.getPath());
                     ret.add(f);
                     if (ret.size() >= max) break;
-                }
+//                }
             }
             page += 1;
             files = searchByPage(model, page);
@@ -1037,7 +1039,7 @@ public class FileServiceImpl implements FileService {
         if (files == null || files.size() < 1) return 0;
         files = files.stream().filter(s -> {
             if (!Boolean.TRUE.equals(s.getStatus())) return false; // 无效文件
-            if (Boolean.FALSE.equals(hasAuthority(s, false, Umask.DOWNLOAD))) return false; // 直接下载禁用权限不能复制
+//            if (Boolean.FALSE.equals(hasAuthority(s, false, Umask.DOWNLOAD))) return false; // 直接下载禁用权限不能复制
             if (exists(s.getName(), parent)) {
                 throw new AppException(HttpJsonStatus.FILE_EXIST, s.getName());
             }
@@ -1092,11 +1094,11 @@ public class FileServiceImpl implements FileService {
         boolean hasFile = sources.stream().anyMatch(s -> {
             return !s.getDir();
         });
-        boolean access = false;
-        if (hasDir && hasFile) access = hasAuthority(target, true, Umask.NEW_FILE, Umask.MK_DIR);
-        else if (hasDir) access = hasAuthority(target, true, Umask.MK_DIR);
-        else if (hasFile) access = hasAuthority(target, true, Umask.NEW_FILE);
-        if (!access) throw new AppException(HttpJsonStatus.FILE_OPT_DENIED, target.getId());
+//        boolean access = false;
+//        if (hasDir && hasFile) access = hasAuthority(target, true, Umask.NEW_FILE, Umask.MK_DIR);
+//        else if (hasDir) access = hasAuthority(target, true, Umask.MK_DIR);
+//        else if (hasFile) access = hasAuthority(target, true, Umask.NEW_FILE);
+//        if (!access) throw new AppException(HttpJsonStatus.FILE_OPT_DENIED, target.getId());
     }
 
     private java.io.File downloadDir (File dir, java.io.File parent, User user, boolean watermark, Integer height, Integer width) {
@@ -1105,18 +1107,18 @@ public class FileServiceImpl implements FileService {
         dir
             .getChildren()
             .stream()
-             .filter(s -> {
-                 return !Boolean.FALSE.equals(hasAuthority(s, user,false, Umask.DOWNLOAD)) && Boolean.TRUE.equals(s.getStatus());
-             })
+//             .filter(s -> {
+//                 return !Boolean.FALSE.equals(hasAuthority(s, user,false, Umask.DOWNLOAD)) && Boolean.TRUE.equals(s.getStatus());
+//             })
             .forEach(s -> {
                if (s.getDir()) {
                    downloadDir(s, root, user, watermark, height, width);
                } else {
                    java.io.File f = new java.io.File(root, s.getName());
                    java.io.File rawFile = scaleImage(nasService.download(s.getUuid(), true), height, width);
-                   if (watermark) {
-                       rawFile = userWatermarkService.generateWatermark(rawFile, user.getUsername(), "download");
-                   }
+//                   if (watermark) {
+//                       rawFile = userWatermarkService.generateWatermark(rawFile, user.getUsername(), "download");
+//                   }
                    try {
                        FileCopyUtils.copy(rawFile, f);
                        log.info("下载文件: " + f.getName());
@@ -1136,19 +1138,20 @@ public class FileServiceImpl implements FileService {
      * @return
      */
     private boolean isAdminFile (File file, boolean root) {
-        User user = userRepository.findById(ContextHelper.getCurrentUserId())
-                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.USER_NOT_FOUND, ContextHelper.getCurrentUserId()));
-        boolean admin = false;
-        if (user.hasSuperRole()) admin = true;
-        else if (user.hasAdminRole()) {
-            if (root) {
-                admin = user.isAdminRootFile(file);
-            } else {
-                admin = user.isAdminFile(file);
-            }
-        }
-        else admin = false;
-        return admin;
+//        User user = userRepository.findById(ContextHelper.getCurrentUserId())
+//                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.USER_NOT_FOUND, ContextHelper.getCurrentUserId()));
+//        boolean admin = false;
+//        if (user.hasSuperRole()) admin = true;
+//        else if (user.hasAdminRole()) {
+//            if (root) {
+//                admin = user.isAdminRootFile(file);
+//            } else {
+//                admin = user.isAdminFile(file);
+//            }
+//        }
+//        else admin = false;
+//        return admin;
+        return true;
     }
 
     private File getUserDir () {
