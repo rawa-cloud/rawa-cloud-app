@@ -110,7 +110,7 @@ public class Licence implements ApplicationRunner {
                 this.mac = mac;
                 this.duration = duration;
                 this.limitUser = limitUser;
-                this.free = free;
+                this.free = true;
             } else {
                 check(free, mac, duration);
             }
