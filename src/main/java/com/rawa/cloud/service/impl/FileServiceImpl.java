@@ -170,6 +170,11 @@ public class FileServiceImpl implements FileService {
 //            access = true;
 //        } else access = false;
 //        if (!access) throw new AppException(HttpJsonStatus.ACCESS_DENIED, id);
+        File file = fileRepository.findById(id)
+                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
+        file.setLimitSize(model.getLimitSize());
+        file.setLimitSuffix(model.getLimitSuffix());
+        fileRepository.save(file);
     }
 
     @Override
