@@ -6,6 +6,7 @@ import com.rawa.cloud.domain.Record;
 import com.rawa.cloud.domain.User;
 import com.rawa.cloud.exception.AppException;
 import com.rawa.cloud.model.file.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -59,7 +60,7 @@ public interface FileService {
 
     int copy(FileMoveModel model);
 
-    List<File> search(FileSearchModel model);
+    Page<File> search(FileSearchModel model);
 
     File createUserFile (String username);
 
@@ -70,4 +71,8 @@ public interface FileService {
     java.io.File exportFile (java.io.File base);
 
     void importFile (java.io.File importFile, File parent);
+
+    void updateTags (Long id, String tags);
+
+    void updateFileInfo (Long id, FileInfoUpdateModel model);
 }

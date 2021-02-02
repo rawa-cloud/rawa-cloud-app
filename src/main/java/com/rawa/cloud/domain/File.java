@@ -65,6 +65,16 @@ public class File extends CascadeEntity<File> {
 
     private Boolean system;
 
+    private String leader;
+
+    private String location;
+
+    private String unit;
+
+    private String keyUnit;
+
+    private String tags;
+
     // 该处需要优化， 应该独立出去， 不然查询次数过多
 //    @JsonIgnore
 //    @ApiModelProperty(value = "文件修改历史列表")

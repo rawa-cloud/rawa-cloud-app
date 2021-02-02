@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @Api(tags = "文件相关接口")
 @RestController
@@ -167,8 +169,24 @@ public class FileController extends RestfulController<File, FileAddModel, FileUp
 
     @ApiOperation("搜索")
     @GetMapping("/search")
-    public JsonResult<List<File>> search(@Valid FileSearchModel model, BindingResult result) {
+    public JsonResult<Page<File>> search(@Valid FileSearchModel model, BindingResult result) {
         ValidationHelper.validate(result);
         return JsonResult.success(fileService.search(model));
+    }
+
+    @ApiOperation("修改标签")
+    @PostMapping("/{id}/tags")
+    public JsonResult updateTags(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String tags = body == null ? "" : body.get("tags");
+        fileService.updateTags(id, tags);
+        return JsonResult.success(null);
+    }
+
+    @ApiOperation("修改文件信息")
+    @PostMapping("/{id}/fileInfo")
+    public JsonResult updateTags(@PathVariable Long id, @Valid @RequestBody FileInfoUpdateModel model, BindingResult result) {
+        ValidationHelper.validate(result);
+        fileService.updateFileInfo(id, model);
+        return JsonResult.success(null);
     }
 }

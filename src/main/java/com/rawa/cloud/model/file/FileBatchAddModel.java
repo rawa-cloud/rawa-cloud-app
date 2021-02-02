@@ -30,6 +30,19 @@ public class FileBatchAddModel extends BaseModel<File> {
     @ApiModelProperty(value = "物理文件标识符")
     private String uuid;
 
+
+    @ApiModelProperty(value = "责任人")
+    private String leader;
+
+    @ApiModelProperty(value = "所属辖区")
+    private String location;
+
+    @ApiModelProperty(value = "所属单位")
+    private String unit;
+
+    @ApiModelProperty(value = "重点单位")
+    private String keyUnit;
+
     @ApiModelProperty(value = "子目录")
     private List<FileBatchAddModel> children;
 }

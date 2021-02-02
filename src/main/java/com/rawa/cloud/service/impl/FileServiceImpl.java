@@ -13,6 +13,7 @@ import com.rawa.cloud.repository.UserRepository;
 import com.rawa.cloud.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -109,6 +110,11 @@ public class FileServiceImpl implements FileService {
         file.setLastChangeBy(ContextHelper.getCurrentUsername()); // 设置最后更改人
         file.setCreationTime(new Date()); // 设置创建时间
         file.setLastChangeTime(new Date()); // 设置最后更改时间
+
+        file.setLeader(model.getLeader());
+        file.setLocation(model.getLocation());
+        file.setUnit(model.getUnit());
+        file.setKeyUnit(model.getKeyUnit());
 
         Log log = Log.build(LogModule.FILE, LogType.ADD).lc(parent.getPath());
         log.add("名称", filename, null);
@@ -514,6 +520,10 @@ public class FileServiceImpl implements FileService {
             am.setName(m.getName());
             am.setDir(m.getDir());
             am.setUuid(m.getUuid());
+            am.setLeader(m.getLeader());
+            am.setLocation(m.getLocation());
+            am.setUnit(m.getUnit());
+            am.setKeyUnit(m.getKeyUnit());
             Long id = add(am);
             ret.add(id);
             List<FileBatchAddModel> children = m.getChildren();
@@ -609,21 +619,10 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     @Transactional
-    public List<File> search(FileSearchModel model) {
-        int page = 0;
-        List<File> ret = new LinkedList<>();
-        List<File> files = searchByPage(model, page);
-        int max = 20;
-        while (files.size() > 0) {
-            for (File f : files) {
-//                if (hasAuthority(f, true, Umask.ACCESS)) {
-                    f.setFilePath(f.getPath());
-                    ret.add(f);
-                    if (ret.size() >= max) break;
-//                }
-            }
-            page += 1;
-            files = searchByPage(model, page);
+    public Page<File> search(FileSearchModel model) {
+        Page<File> ret = searchByPage(model);
+        for (File t: ret.getContent()) {
+            t.setFilePath(t.getPath());
         }
         return ret;
     }
@@ -691,6 +690,25 @@ public class FileServiceImpl implements FileService {
             throw new RuntimeException("文件已存在：" + filename);
         }
         traverseImportFile(importFile, parent);
+    }
+
+    @Override
+    public void updateTags(Long id, String tags) {
+        File file = fileRepository.findById(id)
+                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
+        file.setTags(tags);
+        fileRepository.save(file);
+    }
+
+    @Override
+    public void updateFileInfo(Long id, FileInfoUpdateModel model) {
+        File file = fileRepository.findById(id)
+                .orElseThrow(AppException.optionalThrow(HttpJsonStatus.FILE_NOT_FOUND, id));
+        file.setLeader(model.getLeader());
+        file.setLocation(model.getLocation());
+        file.setUnit(model.getUnit());
+        file.setKeyUnit(model.getKeyUnit());
+        fileRepository.save(file);
     }
 
     private void traverseImportFile (java.io.File importFile, File parent) {
@@ -1212,9 +1230,8 @@ public class FileServiceImpl implements FileService {
 //        fileRepository.save(file);
 //    }
 
-    private List<File> searchByPage(FileSearchModel model, int page) {
-        Pageable pageable = PageRequest.of(page, 100);
-        List<File> ret = fileRepository.findAll(((root, criteriaQuery, criteriaBuilder) -> {
+    private Page<File> searchByPage(FileSearchModel model) {
+        Page<File> ret = fileRepository.findAll(((root, criteriaQuery, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.conjunction();
             predicate.getExpressions().add(criteriaBuilder.equal(root.get("status"), true));
             predicate.getExpressions().add(criteriaBuilder.isNull(root.get("system")));
@@ -1226,13 +1243,33 @@ public class FileServiceImpl implements FileService {
                 predicate.getExpressions().add(
                         criteriaBuilder.equal(root.get("creationBy"), model.getCreationBy()));
             }
+            if (!StringUtils.isEmpty(model.getLeader())) {
+                predicate.getExpressions().add(
+                        criteriaBuilder.equal(root.get("leader"), model.getLeader()));
+            }
+            if (!StringUtils.isEmpty(model.getLocation())) {
+                predicate.getExpressions().add(
+                        criteriaBuilder.equal(root.get("location"), model.getLocation()));
+            }
+            if (!StringUtils.isEmpty(model.getUnit())) {
+                predicate.getExpressions().add(
+                        criteriaBuilder.equal(root.get("unit"), model.getUnit()));
+            }
+            if (!StringUtils.isEmpty(model.getKeyUnit())) {
+                predicate.getExpressions().add(
+                        criteriaBuilder.equal(root.get("keyUnit"), model.getKeyUnit()));
+            }
+            if (!StringUtils.isEmpty(model.getTags())) {
+                predicate.getExpressions().add(
+                        criteriaBuilder.like(root.get("tags"), "%" + model.getTags() + '%'));
+            }
             if (model.getCreationTimeStart() != null && model.getCreationTimeEnd() != null) {
                 predicate.getExpressions().add(
                         criteriaBuilder.between(root.<Date>get("creationTime"), model.getCreationTimeStart(), model.getCreationTimeEnd())
                 );
             }
             return predicate;
-        }), pageable).getContent();
+        }), model.toPage());
         return ret;
     }
 

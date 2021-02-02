@@ -41,4 +41,16 @@ public class FileAddModel extends BaseModel<File> {
 
     @ApiModelProperty(value = "文件类型限制: 文件夹属性")
     private String limitSuffix;
+
+    @ApiModelProperty(value = "责任人")
+    private String leader;
+
+    @ApiModelProperty(value = "所属辖区")
+    private String location;
+
+    @ApiModelProperty(value = "所属单位")
+    private String unit;
+
+    @ApiModelProperty(value = "重点单位")
+    private String keyUnit;
 }

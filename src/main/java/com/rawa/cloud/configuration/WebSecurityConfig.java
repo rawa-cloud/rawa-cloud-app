@@ -40,7 +40,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 "/swagger-ui.html",
 
                 "/shares/**", // 分享相关
-                "/file-assist/**" //
+                "/file-assist/**", //
+                "/dicts/initDict"
                 );
     }
 
