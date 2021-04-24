@@ -6,6 +6,7 @@ import com.rawa.cloud.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -13,6 +14,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 @Configuration
@@ -28,6 +31,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     RestAuthHandler handler;
+
+    @Bean
+    PasswordEncoder passwordEncoder () {
+        return new BCryptPasswordEncoder();
+    }
 
 
     @Override
@@ -64,11 +72,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .cors();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
     @Override
     @Bean
     protected UserDetailsService userDetailsService() {
         return username -> {
-            com.rawa.cloud.domain.User user = userRepository.findUserByUsername(username);
+            String name = username;
+            String[] userStrs = username.split(":");
+            if (userStrs.length > 1) {
+                name = userStrs[1];
+            }
+            com.rawa.cloud.domain.User user = userRepository.findUserByUsername(name);
             if (user == null) {
                 throw new UsernameNotFoundException("用户不存在");
             }
