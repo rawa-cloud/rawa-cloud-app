@@ -47,6 +47,9 @@ public class User extends BaseEntity implements UserDetails {
     )
     private List<Role> roleList;
 
+    @Transient
+    private Boolean synced;
+
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

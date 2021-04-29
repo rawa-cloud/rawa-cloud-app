@@ -19,6 +19,13 @@ public class Dept extends CascadeEntity<Dept> {
     @ApiModelProperty(value = "部门名称")
     private String name;
 
+    private String code;
+
+    private String parentCode;
+
+    @Transient
+    private Boolean synced;
+
     @JsonIgnore
     public boolean isDefaultDept () {
         return getParent() == null;

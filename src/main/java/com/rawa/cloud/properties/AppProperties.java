@@ -27,4 +27,6 @@ public class AppProperties {
     @NotNull
     private  String exportPath; // 文件导出目录
 
+    private String syncCron; // 数据同步调度
+
 }

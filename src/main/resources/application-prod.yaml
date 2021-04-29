@@ -1,9 +1,15 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://rawa-db:3306/rawa-cloud?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=GMT%2B8
-    username: app_admin
-    password: 123456
+    ds1:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://rawa-db:3306/rawa-cloud?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=GMT%2B8
+      username: app_admin
+      password: 123456
+    ds2:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://10.148.30.127:8110/dsdb?useSSL=false
+      username: dsinterface
+      password: dslhxf
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,3 +22,4 @@ app:
   temp: /temp
   import-path: /imports
   export-path: /exports
+  sync-cron: 0 0 6 * * ?
