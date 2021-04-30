@@ -22,4 +22,4 @@ app:
   temp: /temp
   import-path: /imports
   export-path: /exports
-  sync-cron: 0 0 6 * * ?
+  sync-cron: 0 0/30 * * * ?

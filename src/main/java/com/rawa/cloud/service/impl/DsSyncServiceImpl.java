@@ -141,7 +141,7 @@ public class DsSyncServiceImpl implements DsSyncService {
 
     Map<String, UserRoleEntity> getAdminUserRoleMap () {
         String sql = "select bm as userCode, xtjsbm as roleCode from v_user_role t " +
-                "where t.jsbm = 'ROLE_TZ_ADMIN'";
+                "where t.xtjsbm = 'ROLE_TZ_ADMIN'";
 
         List<UserRoleEntity> origins =
                 jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(UserRoleEntity.class));
