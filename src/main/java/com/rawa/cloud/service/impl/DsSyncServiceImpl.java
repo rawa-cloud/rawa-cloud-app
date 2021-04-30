@@ -163,7 +163,7 @@ public class DsSyncServiceImpl implements DsSyncService {
 
     @Transactional
     void syncUnit () {
-        String sql = "select bm as code, mc as name from v_t_dw_zddw";
+        String sql = "select id as code, dwmc as name from v_t_dw_zddw";
 
         List<Unit> origins =
                 jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Unit.class));
