@@ -23,6 +23,10 @@ public class Dept extends CascadeEntity<Dept> {
 
     private String parentCode;
 
+    private String areaCode;
+
+    private String thirdId;
+
     @Transient
     private Boolean synced;
 

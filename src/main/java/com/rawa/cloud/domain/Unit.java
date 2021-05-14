@@ -15,4 +15,6 @@ public class Unit extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
+
+    private String deptThirdId;
 }

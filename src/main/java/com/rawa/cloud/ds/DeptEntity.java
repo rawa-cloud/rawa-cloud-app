@@ -9,4 +9,8 @@ public class DeptEntity {
     private String name;
 
     private String parentCode;
+
+    private String areaCode;
+
+    private String thirdId;
 }

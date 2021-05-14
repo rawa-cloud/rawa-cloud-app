@@ -49,7 +49,7 @@ public class DsSyncServiceImpl implements DsSyncService {
 
     @Transactional
     Map<String, Dept> syncDept () {
-       String sql = "select bm as code, mc as name, ssjgbm as parentCode from v_organization";
+       String sql = "select bm as code, mc as name, ssjgbm as parentCode, zzjgid as thirdId, ssxzqy as areaCode from v_organization";
 
        List<DeptEntity> origins =
                jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(DeptEntity.class));
@@ -70,6 +70,8 @@ public class DsSyncServiceImpl implements DsSyncService {
          }
          item.setName(s.getName());
          item.setParentCode(s.getParentCode());
+         item.setAreaCode(s.getAreaCode());
+         item.setThirdId(s.getThirdId());
          item.setSynced(true);
          newDepts.add(item);
        });
@@ -163,7 +165,7 @@ public class DsSyncServiceImpl implements DsSyncService {
 
     @Transactional
     void syncUnit () {
-        String sql = "select id as code, dwmc as name from v_t_dw_zddw";
+        String sql = "select id as code, dwmc as name, jgid as deptThirdId from v_t_dw_zddw";
 
         List<Unit> origins =
                 jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Unit.class));
