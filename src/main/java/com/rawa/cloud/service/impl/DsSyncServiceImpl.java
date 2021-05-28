@@ -135,7 +135,7 @@ public class DsSyncServiceImpl implements DsSyncService {
         List<User> savedNewUsers = userRepository.saveAll(newUsers);
 
         List<User> deletedUsers = users.stream()
-                .filter(s -> !Boolean.TRUE.equals(s.getSynced()))
+                .filter(s -> !Boolean.TRUE.equals(s.getSynced()) && !"root".equals(s.getUsername()))
                 .collect(Collectors.toList());
 
         userRepository.deleteAll(deletedUsers);
