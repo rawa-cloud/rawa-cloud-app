@@ -50,7 +50,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 "/shares/**", // 分享相关
                 "/file-assist/**", //
                 "/dicts/initDict",
-                "/ds/sync"
+                "/ds/sync",
+                "/h2/**",
+                "/openapi/**"
                 );
     }
 
